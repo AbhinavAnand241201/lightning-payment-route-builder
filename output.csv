@@ -1,0 +1,4 @@
+path_id,channel_name,htlc_amount_msat,htlc_expiry,tlv
+0,AliceBob,200702300,620,NULL
+0,BobCarol,200600000,555,NULL
+0,CarolDave,200000000,540,NULL

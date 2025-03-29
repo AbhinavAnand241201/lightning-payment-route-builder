@@ -1,0 +1,109 @@
+name: Autograding Tests
+on: [push, repository_dispatch, workflow_dispatch]
+
+permissions:
+  checks: write
+  actions: read
+  contents: read
+
+jobs:
+  run-autograding-tests:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-classroom[bot]'
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Run Docker Container
+        id: docker-run
+        run: |
+          # We want the docker image to be able to fail when test cases fail so that we can capture the output.
+          set +e
+          output=$(docker run -v "${{ github.workspace }}/submissions:/submissions" carlakirkcohen/routebuilder:latest)
+          docker_exit_status=$?
+          # Return to regular exit-on-error behavior.
+          set -e
+
+          echo "Docker ran with $docker_exit_status"
+          echo "Output: $output"
+          echo "DOCKER_EXIT_STATUS=$docker_exit_status" >> $GITHUB_ENV
+          echo "PASS_001=$(echo \"$output\" | grep -o '001_PASS' | wc -l)" >> $GITHUB_ENV
+          echo "PASS_002=$(echo \"$output\" | grep -o '002_PASS' | wc -l)" >> $GITHUB_ENV
+          echo "PASS_003=$(echo \"$output\" | grep -o '003_PASS' | wc -l)" >> $GITHUB_ENV
+          echo "PASS_004=$(echo \"$output\" | grep -o '004_PASS' | wc -l)" >> $GITHUB_ENV
+
+      - name: Clean Run
+        id: clean-run
+        uses: classroom-resources/autograding-io-grader@v1
+        with:
+          test-name: Clean Run
+          setup-command: ''
+          command: echo "${{ env.DOCKER_EXIT_STATUS }}"
+          input: ''
+          expected-output: '0'
+          comparison-method: exact
+          timeout: 10
+          max-score: 1
+
+      - name: Basic Path with base fee
+        id: basic-path-001
+        uses: classroom-resources/autograding-io-grader@v1
+        with:
+          test-name: Basic Path
+          setup-command: ''
+          command: echo "${{ env.PASS_001 }}"
+          input: ''
+          expected-output: '1'
+          comparison-method: exact
+          timeout: 10
+          max-score: 1
+
+      - name: Basic path with Proportional Fees
+        id: basic-path-002
+        uses: classroom-resources/autograding-io-grader@v1
+        with:
+          test-name: Basic path with Proportional Fees
+          setup-command: ''
+          command: echo "${{ env.PASS_002 }}"
+          input: ''
+          expected-output: '1'
+          comparison-method: exact
+          timeout: 10
+          max-score: 1
+
+      - name: Multi Hop Path
+        id: multi-hop-path-003
+        uses: classroom-resources/autograding-io-grader@v1
+        with:
+          test-name: Multi Hop Path
+          setup-command: ''
+          command: echo "${{ env.PASS_003 }}"
+          input: ''
+          expected-output: '1'
+          comparison-method: exact
+          timeout: 10
+          max-score: 1
+
+      - name: Complex MPP Path
+        id: mpp-path-004
+        uses: classroom-resources/autograding-io-grader@v1
+        with:
+          test-name: Complex MPP Path
+          setup-command: ''
+          command: echo "${{ env.PASS_004 }}"
+          input: ''
+          expected-output: '1'
+          comparison-method: exact
+          timeout: 10
+          max-score: 1
+
+      - name: Autograding Reporter
+        uses: classroom-resources/autograding-grading-reporter@v1
+        env:
+          CLEAN-RUN_RESULTS: "${{ steps.clean-run.outputs.result }}"
+          BASIC-PATH-001_RESULTS: "${{ steps.basic-path-001.outputs.result }}"
+          BASIC-PATH-002_RESULTS: "${{ steps.basic-path-002.outputs.result }}"
+          MULTI-HOP-PATH-003_RESULTS: "${{ steps.multi-hop-path-003.outputs.result }}"
+          MPP-PATH-004_RESULTS: "${{ steps.mpp-path-004.outputs.result }}"
+        with:
+          runners: clean-run, basic-path-001, basic-path-002, multi-hop-path-003, mpp-path-004
