@@ -4,9 +4,15 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-csv = "1.2"
-serde = { version = "1.0", features = ["derive"] }
+csv = "^1.2"
+serde = { version = "^1.0", features = ["derive"] }
 lightning-invoice = "0.33"
 bitcoin = "0.30"
 bech32 = "0.9"
 hex = "0.4"
+thiserror = "1.0"
+log = "0.4"
+
+[profile.release]
+lto = true
+codegen-units = 1
