@@ -23,16 +23,7 @@ if [ -z $version ]; then
     exit 1
 fi
 
+# Build and run the Rust program
+cargo build --manifest-path ./submissions/rust/Cargo.toml --release
 
-# echo "Output path: $output_file_path"
-# echo "Input path: $input_file_path"
-# echo "payment secret: $payment_request_hex"
-# echo "height: $current_block_height"
-
-
-
-cargo build --manifest-path ./submissions/rust/Cargo.toml
-
-./submissions/rust/target/debug/route_builder "$output_file_path" "$input_file_path" "$payment_request_hex" "$current_block_height"
-
-# rm -rf $output_file_path/output.csv
+./submissions/rust/target/release/route_builder "$output_file_path" "$input_file_path" "$payment_request_hex" "$current_block_height"
